@@ -68,14 +68,7 @@ const nextISSTimesForMyLocation = function(callback) {
           callback(Error(msg),null);
           return;
         }
-        const flyOverArray = [];
-        for (const obj of flyOvers) {
-          const date = new Date(0);
-          date.setUTCSeconds(obj.risetime);
-          const duration = obj.duration;
-          flyOverArray.push(`Next pass at ${date} for ${duration}, seconds`);
-        }
-        callback(error,flyOverArray);
+        callback(error,flyOvers);
       });
     });
   });

@@ -10,8 +10,7 @@ const fetchMyIp = function(callback) {
       callback(Error(msg),null);
       return;
     }
-    const bodyObject = JSON.parse(body);
-    const ip = bodyObject.ip;
+    const ip = JSON.parse(body).ip;
     callback(error,ip);
   });
 };
@@ -46,9 +45,39 @@ const fetchISSFlyOverTimes = function(coords, callback) {
       callback(Error(msg),null);
       return;
     }
-    const bodyObject = JSON.parse(body);
-    const flyOver = bodyObject.response;
+    const flyOver = JSON.parse(body).response;
     callback(error,flyOver);
   });
 };
-module.exports = {fetchMyIp,fetchCoordsByIP,fetchISSFlyOverTimes};
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIp((error,ip) => {
+    if (error) {
+      const msg = ('IP error:  ' + error);
+      callback(Error(msg),null);
+      return;
+    }
+    fetchCoordsByIP(ip,(error,coords) => {
+      if (error) {
+        const msg = ('Coordinate error: ' + error);
+        callback(Error(msg),null);
+        return;
+      }
+      fetchISSFlyOverTimes(coords, (error,flyOvers) => {
+        if (error) {
+          const msg = ('FlyOverTimeError: ' + error);
+          callback(Error(msg),null);
+          return;
+        }
+        const flyOverArray = [];
+        for (const obj of flyOvers) {
+          const date = new Date(0);
+          date.setUTCSeconds(obj.risetime);
+          const duration = obj.duration;
+          flyOverArray.push(`Next pass at ${date} for ${duration}, seconds`);
+        }
+        callback(error,flyOverArray);
+      });
+    });
+  });
+};
+module.exports = {nextISSTimesForMyLocation};
